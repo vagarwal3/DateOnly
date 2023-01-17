@@ -8,44 +8,9 @@ class DateOnly {
         this.Year = year;
     }
     get DayOfWeek(): number {
-        let data: [{ numner, number }] = [
-            { Year: 1960, DayOfWeek: 6 },
-            { Year: 1961, DayOfWeek: 1 },
-            { Year: 1965, DayOfWeek: 6 },
-            { Year: 1969, DayOfWeek: 4 },
-            { Year: 1973, DayOfWeek: 2 },
-            { Year: 1977, DayOfWeek: 7 },
-            { Year: 1981, DayOfWeek: 5 },
-            { Year: 1985, DayOfWeek: 3 },
-            { Year: 1989, DayOfWeek: 1 },
-            { Year: 1993, DayOfWeek: 6 },
-            { Year: 1997, DayOfWeek: 4 },
-            { Year: 2001, DayOfWeek: 2 },
-            { Year: 2005, DayOfWeek: 7 },
-            { Year: 2009, DayOfWeek: 5 },
-            { Year: 2012, DayOfWeek: 1 },
-            { Year: 2013, DayOfWeek: 3 },
-            { Year: 2017, DayOfWeek: 1 },
-            { Year: 2021, DayOfWeek: 6 },
-            { Year: 2025, DayOfWeek: 4 },
-            { Year: 2029, DayOfWeek: 2 },
-            { Year: 2033, DayOfWeek: 7 },
-            { Year: 2037, DayOfWeek: 5 },
-            { Year: 2041, DayOfWeek: 3 },
-            { Year: 2045, DayOfWeek: 1 }];
-        let dayOfWeek: number;
-        for (i = 0; i <= data.length; i++) {
-            if (data[i].Year <= this.Year && data[i + 1].Year > this.Year) {
-                dayOfWeek = data[i].DayOfWeek + (this.Year - data[i].Year);
-                while (dayOfWeek > 7)
-                    dayOfWeek = -6;
-                break;
-            }
-        }
-        for (i = 1; i < this.Month; i++)
-            dayOfWeek += DateOnly.GetNumberOfDaysInMonth(i, this.Year);
-        dayOfWeek += this.Day;
-        return dayOfWeek % 7;
+        let dayOfWeek: number = 6;//1960
+        dayOfWeek += DateOnly.NumerOfDaysBetweenDates(new Date(1, 1, 1960), this);
+        return dayOfWeek % 7 + 1;
     }
     get DayOfYear(): number {
         let daysInFullMonth: number = 0;
@@ -156,15 +121,10 @@ class DateOnly {
     public LessThanOrEqual(a: DateOnly): boolean {
         return this.Compare(a) <= 0;
     }
-    static IsLeadYear(year: number): boolean {
+    static IsLeapYear(year: number): boolean {
         return year % 4 == 0;
     }
-    private Compare(a: Date) {
-        if (this.Year != a.Year) return this.Year - a.Year;
-        if (this.Month != a.Month) return this.Month - a.Month;
-        return this.Day - a.Day;
-    }
-    private static NumerOfDaysBetweenDates(a: DateOnly, b: DateOnly, areBothDatesInclusive: boolean): number {
+    public static NumerOfDaysBetweenDates(a: DateOnly, b: DateOnly, areBothDatesInclusive: boolean): number {
 
         if (a.Year == b.Year && a.Month == b.Month)
             return b.Day - a.Day;
@@ -192,6 +152,12 @@ class DateOnly {
         numberOfDays += b.Day;
         return numberOfDays;
     }
+    private Compare(a: Date) {
+        if (this.Year != a.Year) return this.Year - a.Year;
+        if (this.Month != a.Month) return this.Month - a.Month;
+        return this.Day - a.Day;
+    }
+
     private static GetNumberOfDaysInYear(year: number) {
         return DateOnly.IsLeapYear(year) ? 366 : 365;
     }
