@@ -121,10 +121,7 @@ class DateOnly {
     public LessThanOrEqual(a: DateOnly): boolean {
         return this.Compare(a) <= 0;
     }
-    static IsLeapYear(year: number): boolean {
-        return year % 4 == 0;
-    }
-    public static NumerOfDaysBetweenDates(a: DateOnly, b: DateOnly, areBothDatesInclusive: boolean): number {
+     public static NumerOfDaysBetweenDates(a: DateOnly, b: DateOnly, areBothDatesInclusive: boolean): number {
 
         if (a.Year == b.Year && a.Month == b.Month)
             return b.Day - a.Day;
@@ -170,4 +167,8 @@ class DateOnly {
         }
         return 31;
     }
+    private static IsLeapYear(year: number): boolean {
+        return year % 4 == 0;
+    }
+
 }
