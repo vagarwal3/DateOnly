@@ -1,2 +1,2 @@
 # DateOnly
-Typescript and JavaScript library for Date without time part
+A very light weight Typescript library for Date without time part.
