@@ -3,14 +3,24 @@ export class DateOnly {
     readonly Month: number;
     readonly Year: number;
     constructor(month: number, day: number, year: number) {
+        if (month < 1 || month > 12) {
+            throw Error();
+        }
+        if (year < 999 || year > 5000) {
+            throw Error();
+        }
+        if (day < 1 || day > DateOnly.GetNumberOfDaysInMonth(month, year)) {
+            throw Error();
+        }
+
         this.Month = month;
         this.Day = day;
         this.Year = year;
     }
     get DayOfWeek(): number {
-        let dayOfWeek: number = 2;//1900
-        dayOfWeek += DateOnly.NumerOfDaysBetweenDates(new DateOnly(1, 1, 1900), this, false);
-        return (dayOfWeek - 1) % 7 + 1;
+        //"1/1/1000"=>Monday
+        let numberOfDaysSinceYear1000 = DateOnly.NumerOfDaysBetweenDates(new DateOnly(1, 1, 1000), this, false);
+        return (numberOfDaysSinceYear1000 + 1) % 7 + 1;
     }
     get DayOfYear(): number {
         let daysInFullMonth: number = 0;
@@ -20,110 +30,179 @@ export class DateOnly {
         return daysInFullMonth + this.Day;
     }
 
-    public AddDays(days: number): DateOnly {
-        if (days == 0)
+    public AddDays(value: number): DateOnly {
+        if (value == 0) {
             return new DateOnly(this.Month, this.Day, this.Year);
-        if (days > 0) {
-            let numberOfDaysInCurrentMonth = DateOnly.GetNumberOfDaysInMonth(this.Month, this.Year);
-            if (this.Day + days <= numberOfDaysInCurrentMonth) {
-                return new DateOnly(this.Month, this.Day + days, this.Year);
-            }
+        }
 
-            let day: number, month: number, year: number;
-            let remainingDays = days - (numberOfDaysInCurrentMonth - this.Day);
-            day = 1;
-            if (this.Month == 12) {
-                month = 1;
-                year = this.Year + 1;
+        if (value > 0) {
+            let remainingDays = value;
+            let day: number;
+            let month = this.Month;
+            let year = this.Year;
+            if (this.Day > 28) {
+                remainingDays += this.Day - 28;
+                day = 28;
             }
             else {
-                month = this.Month + 1;
-                year = this.Year;
+                day = this.Day;
             }
 
-            while (remainingDays > 0 && month > 1) {
-                let numberOfDaysInMonth = DateOnly.GetNumberOfDaysInMonth(month, year);
-                if (numberOfDaysInMonth <= remainingDays) {
-                    if (this.Month == 12) {
-                        month = 1;
-                        year++;
+            while (remainingDays >= 365) {
+                let numberOfDaysInOneYear: number;
+                if (month > 2)
+                    numberOfDaysInOneYear = DateOnly.GetNumberOfDaysInYear(month, year + 1);
+                else
+                    numberOfDaysInOneYear = DateOnly.GetNumberOfDaysInYear(month, year);
+                if (remainingDays >= numberOfDaysInOneYear) {
+                    remainingDays -= numberOfDaysInOneYear;
+                    year++;
+                }
+                else
+                    break;
+            }
+            while (remainingDays >= 28) {
+                let numberOfDaysInOneMonth = DateOnly.GetNumberOfDaysInMonth(month, year);
+                if (remainingDays >= numberOfDaysInOneMonth) {
+                    remainingDays -= numberOfDaysInOneMonth;
+                    if (month == 12) {
+                        month = 1; year++
                     }
                     else {
                         month++;
                     }
-                    remainingDays -= numberOfDaysInMonth;
                 }
                 else
                     break;
-
             }
-            while (remainingDays > 0) {
-                let numberOfDaysInYear = DateOnly.GetNumberOfDaysInYear(year);
-                if (numberOfDaysInYear <= remainingDays) {
+            let numberOfDaysInLastMonth = DateOnly.GetNumberOfDaysInMonth(month, year);
+            if (day + remainingDays <= numberOfDaysInLastMonth) {
+                day += remainingDays;
+            }
+            else {
+                day += remainingDays - numberOfDaysInLastMonth;
+                if (month == 12) {
+                    month = 1;
                     year++;
-                    remainingDays -= numberOfDaysInYear;
                 }
-                else
-                break;
-
-            }
-            while (remainingDays > 0) {
-                let numberOfDaysInMonth = DateOnly.GetNumberOfDaysInMonth(month, year);
-                if (numberOfDaysInMonth <= remainingDays) {
+                else {
                     month++;
-                    remainingDays -= numberOfDaysInMonth;
+                }
+            }
+            return new DateOnly(month, day, year);
+        }
+        else {
+            let remainingDays = value;
+            let day: number;
+            let month = this.Month;
+            let year = this.Year;
+            if (this.Day > value)
+                return new Date(this.Month, this.Day - value, this.Year);
+            if (this.Day > 28) {
+                remainingDays -= this.Day - 28;
+                day = 28;
+            }
+            else {
+                day = this.Day;
+            }
+
+            while (remainingDays >= 365) {
+                let numberOfDaysInOneYear: number;
+                if (month > 2)
+                    numberOfDaysInOneYear = DateOnly.GetNumberOfDaysInYear(month, year);
+                else
+                    numberOfDaysInOneYear = DateOnly.GetNumberOfDaysInYear(month, year - 1);
+                if (remainingDays >= numberOfDaysInOneYear) {
+                    remainingDays -= numberOfDaysInOneYear;
+                    year--;
                 }
                 else
                     break;
-
             }
-            if (remainingDays > 0)
-                day += remainingDays-1;
-            return new DateOnly(month, day, year);
-        }
-        else {
-
-            let day: number, month: number, year: number;
+            while (remainingDays >= 28) {
+                let numberOfDaysInOneMonth: number;
+                if (month == 1)
+                    numberOfDaysInOneMonth = DateOnly.GetNumberOfDaysInMonth(12, year - 1);
+                else
+                    numberOfDaysInOneMonth = DateOnly.GetNumberOfDaysInMonth(month - 1, year);
+                if (remainingDays >= numberOfDaysInOneMonth) {
+                    remainingDays -= numberOfDaysInOneMonth;
+                    if (month == 1) {
+                        month = 12; year--
+                    }
+                    else {
+                        month--;
+                    }
+                }
+                else
+                    break;
+            }
+            let numberOfDaysInLastMonth: number;
+            if (month == 1)
+                numberOfDaysInOneMonth = DateOnly.GetNumberOfDaysInMonth(12, year - 1);
+            else
+                numberOfDaysInOneMonth = DateOnly.GetNumberOfDaysInMonth(month - 1, year);
+            if (day > remainingDays) {
+                day -= remainingDays;
+            }
+            else {
+                day += numberOfDaysInLastMonth - remainingDays;
+                if (month == 1) {
+                    month = 12;
+                    year--;
+                }
+                else {
+                    month--;
+                }
+            }
             return new DateOnly(month, day, year);
         }
     }
-    public AddMonths(months: number): DateOnly {
-        let remainingMonths = months;
-        let day: number = 1;
-        day = this.Day;
-        console.log(day);
+    public AddMonths(value: number): DateOnly {
+
+        if (value == 0) {
+            return new DateOnly(month, this.Day, year);
+        }
         let month: number;
-        let year: number = this.Year;
-        if (remainingMonths >= 12) {
-            year += remainingMonths / 12;
-            remainingMonths = remainingMonths % 12;
-        }
-
-        if (this.Month + remainingMonths > 12) {
-            month = 12 - (this.Month + remainingMonths)
-            year++;
-        }
-        else
-            month = this.Month + remainingMonths;
-        if (month == 2 && day == 29 && DateOnly.IsLeapYear(year)) {
-            month = 3;
-            day = 1;
-        }
-        return new DateOnly(month, day, year)
-    }
-    public AddYears(years: number): DateOnly {
-        if (this.Day == 29 && this.Month == 2 && !DateOnly.IsLeapYear(this.Year + years)) {
-            return new DateOnly(3, 1, this.Year + years);
+        let year: number;
+        if (value > 0) {
+            if (this.Month + value > 12) {
+                year = this.Year + parseInt((this.Month + value) / 12);
+                month = (this.Month + value) % 12;
+            }
+            else {
+                year = this.Year;
+                month = this.Month + value;
+            }
         }
         else {
-            return new DateOnly(this.Month, this.Day, this.Year + years);
+            if (this.Month <= value) {
+                year = this.Year - parseInt((value - this.Month) / 12);
+                month = (value - this.Month) % 12;
+            }
+            else {
+                year = this.Year;
+                month = value - this.Month;
+            }
+        }
+        if (this.Day > DateOnly.GetNumberOfDaysInMonth(month, year)) {
+            new DateOnly(month + 1, 1, year)
+        }
+        return new DateOnly(month, this.Day, year)
+    }
+    public AddYears(value: number): DateOnly {
+        if (this.Day == 29 && this.Month == 2 && !DateOnly.IsLeapYear(this.Year + value)) {
+            return new DateOnly(3, 1, this.Year + value);
+        }
+        else {
+            return new DateOnly(this.Month, this.Day, this.Year + value);
         }
     }
     public Equals(a: DateOnly): boolean {
         return this.Compare(a) == 0;
     }
-    public ToString() {
-        return this.Month.toString() + "/" + this.Day.toString();
+    public toString() {
+        return this.Month.toString() + "/" + this.Day.toString() + "/" + this.Year.toString();
     }
     public GreaterThanOrEqual(a: DateOnly): boolean {
         return this.Compare(a) >= 0;
@@ -142,7 +221,7 @@ export class DateOnly {
         let a: DateOnly;
         let b: DateOnly;
         let multiplier = 1;
-        let addition = areBothDatesInclusive ? 1 : 0;;
+        let addition = areBothDatesInclusive ? 1 : 0;
         if (date1.GreaterThan(date2)) {
             a = date2;
             b = date1;
@@ -152,36 +231,37 @@ export class DateOnly {
             a = date1;
             b = date2;
         }
-        if (a.Year == b.Year && a.Month == b.Month)
-            return (b.Day - a.Day + addition) * multiplier;
-
-        let numberOfDays: number;
-
-        if (a.Month == 1 && a.Day == 1 && a.Year < b.Year)
-            numberOfDays = DateOnly.GetNumberOfDaysInYear(a.Year);
-        else {
-            numberOfDays = DateOnly.GetNumberOfDaysInMonth(a.Month, a.Year) - a.Day + 1;
-
-
-            for (let month = a.Month + 1; month <= 12; month++) {
-                if (a.Year == b.Year && month == b.Month)
-                    return (numberOfDays + b.Day - 1 + addition) * multiplier;
-
-                numberOfDays += DateOnly.GetNumberOfDaysInMonth(month, a.Year);
-            }
+        while (a.Day > 28 && a.LessThan(b)) {
+            numberOfDays++;
+            a = a.AddDays(1);
         }
-        for (let year = a.Year + 1; year < b.Year; year++)
-            numberOfDays += DateOnly.GetNumberOfDaysInYear(year);
-
-        for (let month = 1; month < b.Month; month++)
-            numberOfDays += DateOnly.GetNumberOfDaysInMonth(month, b.Year);
-        numberOfDays += b.Day + addition - 1;
+        if (a.Equals(b))
+            return numberOfDays;
+        while (a.AddYears(1).LessThanOrEqual(b)) {
+            if (a.Month > 2)
+                numberOfDays += DateOnly.GetNumberOfDaysInYear(a.Year + 1);
+            else
+                numberOfDays += DateOnly.GetNumberOfDaysInYear(a.Year);
+            a = a.AddYears(1);
+        }
+        while (a.AddMonths(1).LessThanOrEqual(b)) {
+            numberOfDays += DateOnly.GetNumberOfDaysInYear(a.Month, a.Year);
+            a = a.AddMonths(1);
+        }
+        if(a.Month==b.Month)
+            numberOfDays += b.Day - a.Day;
+        else 
+            numberOfDays += b.Day + (DateOnly.GetNumberOfDaysInMonth(a.month,a.Year) - a.Day);
         return numberOfDays * multiplier;
     }
-    private Compare(a: DateOnly) {
-        if (this.Year != a.Year) return this.Year - a.Year;
-        if (this.Month != a.Month) return this.Month - a.Month;
-        return this.Day - a.Day;
+    private Compare(value: DateOnly) {
+        if (this.Year != value.Year) {
+            return this.Year - value.Year;
+        }
+        if (this.Month != value.Month) {
+            return this.Month - value.Month;
+        }
+        return this.Day - value.Day;
     }
 
     private static GetNumberOfDaysInYear(year: number) {
@@ -197,12 +277,13 @@ export class DateOnly {
         return 31;
     }
     private static IsLeapYear(year: number): boolean {
-        if (year % 4 != 0)
+        if (year % 4 != 0) {
             return false;
-        if (year % 100 != 0)
+        }
+        if (year % 100 != 0) {
             return true;
+        }
 
         return year % 400 == 0;
     }
-
 }
