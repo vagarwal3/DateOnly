@@ -204,6 +204,11 @@ export class DateOnly {
     public toString() {
         return this.Month.toString() + "/" + this.Day.toString() + "/" + this.Year.toString();
     }
+    static public Parse(value:string) {
+        let parts = value.split('-');
+        return new DateOnly(parts[1],parts[0],parts[0]);
+    }
+   
     public GreaterThanOrEqual(a: DateOnly): boolean {
         return this.Compare(a) >= 0;
     }

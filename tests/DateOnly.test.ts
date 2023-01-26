@@ -2,6 +2,25 @@ import { assert, expect } from "chai";
 import { DateOnly } from "../DateOnly";
 
 describe('DateOnly', () => {
+    it('Parse is returning incorrect value', () => {
+
+        //pre-1900 dates
+        assert.equal(DateOnly.Parse("1/1/2020"),new DateOnly(1, 1, 1000));
+        assert.equal(DateOnly.Parse("1/1/2020"),new DateOnly(1, 1, 1000));
+        assert.equal(DateOnly.Parse("1/1/2020"),new DateOnly(1, 1, 1000));
+        assert.equal(DateOnly.Parse("1/1/2020"),new DateOnly(1, 1, 1000));
+        assert.equal(DateOnly.Parse("1/1/2020"),new DateOnly(1, 1, 1000));
+        assert.equal(DateOnly.Parse("1/1/2020"),new DateOnly(1, 1, 1000));
+        assert.equal(DateOnly.Parse("1/1/2020"),new DateOnly(1, 1, 1000));
+        assert.equal(DateOnly.Parse("1/1/2020"),new DateOnly(1, 1, 1000));
+        assert.equal(DateOnly.Parse("1/1/2020"),new DateOnly(1, 1, 1000));
+        assert.equal(DateOnly.Parse("1/1/2020"),new DateOnly(1, 1, 1000));
+        assert.equal(DateOnly.Parse("1/1/2020"),new DateOnly(1, 1, 1000));
+        assert.equal(DateOnly.Parse("1/1/2020"),new DateOnly(1, 1, 1000));
+    })
+});
+
+describe('DateOnly', () => {
     it('ToString is returning incorrect value', () => {
 
         //pre-1900 dates
