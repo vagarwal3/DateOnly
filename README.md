@@ -16,3 +16,4 @@ To give confidence in the quality of this library, this library comes with exten
 Test cases can be executed using following command-
 npm test
 ## License
+Created by Vikas Agarwal and licensed under the MIT License. The code is available as open source under the terms of the MIT License.
